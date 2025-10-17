@@ -2,11 +2,9 @@
 #define WORLD_H
 
 #include <SDL3/SDL.h>
-#include "Sand.h"
 #include "Material.h"
-#include <memory>
-#include <vector>
 #include "Grid.h"
+#include <algorithm>
 
 
 class World {
@@ -35,27 +33,37 @@ World::~World() {
 }
 
 void World::addSand(int x, int y, SDL_Color color) {
-    if (!m_points(x, y)) //If it is null
+    if (m_points(x, y).getType() == Empty) //If it is empty
     {
-        m_points(x, y) = std::make_shared<Sand>(x, y, color);
+        m_points(x, y).updateColor(color);
+        m_points(x, y).updateType(Sand);
+        m_points(x, y).updateX(x);
+        m_points(x, y).updateY(y);
     }
      
 }
 
+//TODO: infinite while loop when clicked at the same spot
 void World::addSands(int x, int y, SDL_Color color){
     int squareLength = 50;
     int pixelGenerate = 200;
     int counter = 0;
-    while (counter < pixelGenerate)
+    int whileCounter = 0; //To prevent infinite while loop when we can't generate enough pixels
+    while (counter < pixelGenerate || whileCounter < pixelGenerate*2)
     {
         int rand_x = SDL_rand(squareLength) + x - squareLength/2;
         int rand_y = SDL_rand(squareLength) + y - squareLength/2;
 
         if (rand_x < m_cols && rand_y < m_rows && rand_x>=0 && rand_y>=0 &&
-         !m_points(rand_x, rand_y) ) {
-                m_points(rand_x, rand_y) = std::make_shared<Sand>(rand_x, rand_y, color);
+         m_points(rand_x, rand_y).getType() == Empty ) {
+                m_points(rand_x, rand_y).updateColor(color);
+                m_points(rand_x, rand_y).updateType(Sand);
+                m_points(rand_x, rand_y).updateX(rand_x);
+                m_points(rand_x, rand_y).updateY(rand_y);
                 counter++;
             }
+
+        whileCounter ++;
 
     }
 
@@ -66,11 +74,11 @@ void World::render(SDL_Renderer* renderer) const {
     {
         for (int j = 0; j < m_cols; j++)
         {
-            if (m_points(j, i))
+            if (m_points(j, i).getType() != Empty)
             {
-                SDL_Color c = m_points(j, i)->getColor();
+                SDL_Color c = m_points(j, i).getColor();
                 SDL_SetRenderDrawColor(renderer, c.r, c.g, c.b, c.a);
-                SDL_RenderPoint(renderer, m_points(j, i)->getX(), m_points(j, i)->getY());
+                SDL_RenderPoint(renderer, j, i);
             }
             
         }
@@ -85,7 +93,7 @@ void World::update() {
     
     for (int i = 0; i < m_cols; i++) {
         for (int j = m_rows-1; j >= 0; j--) { //Bottom up approach
-            if (m_points(i,j)) {//Non-null values(material) which should be updated
+            if (m_points(i,j).getType() != Empty) {//Non-null values(material) which should be updated
 
                 int newY = j + 1; //New y
 
@@ -94,17 +102,18 @@ void World::update() {
                     newY = m_rows-1; 
                 } 
 
-                //if there is an empty space at newY, place the particle there
-                if (!m_points(i, newY)) {
+                //if there is an empty space at newY, Empty this particle and sand the other
+                if (m_points(i, newY).getType() == Empty) {
 
-                    //update the pixels y
-                    m_points(i,j)->updateY(newY);
+                    // //update the pixels y
+                    // m_points(i,j).updateY(newY);
+                    addSand(i, newY, m_points(i,j).getColor());
 
-                    //update the location of the pixel on the grid
-                    m_points(i, newY) = m_points(i, j);
+                    //swap the two pixels on the grid
+                    m_points(i, j).updateType(Empty);
 
-                    //Remove the old pointer on the grid
-                    m_points(i, j) = nullptr;
+
+                    
                 } 
                 // else if (newY <= m_rows-1) { // Check the bottom left or right and place the particle there
                 //     if (!m_points(i-1 , newY)){ //bottom left
