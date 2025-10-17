@@ -4,7 +4,6 @@
 #include <SDL3/SDL.h>
 #include "Material.h"
 #include "Grid.h"
-#include <algorithm>
 
 
 class World {
@@ -18,8 +17,9 @@ class World {
         ~World();
         void addSand(int x, int y, SDL_Color color);
         void addSands(int x, int y, SDL_Color color);
-        void render(SDL_Renderer* renderer) const;
+        void render(SDL_Renderer* renderer);
         void update();
+        void updateSand(int x, int y);
 };
 
 World::World(int rows, int cols): 
@@ -69,7 +69,7 @@ void World::addSands(int x, int y, SDL_Color color){
 
 }
 
-void World::render(SDL_Renderer* renderer) const {
+void World::render(SDL_Renderer* renderer) {
     for (int i = 0; i < m_rows; i++)
     {
         for (int j = 0; j < m_cols; j++)
@@ -79,6 +79,7 @@ void World::render(SDL_Renderer* renderer) const {
                 SDL_Color c = m_points(j, i).getColor();
                 SDL_SetRenderDrawColor(renderer, c.r, c.g, c.b, c.a);
                 SDL_RenderPoint(renderer, j, i);
+                // m_points(j, i).updated = false;
             }
             
         }
@@ -89,13 +90,11 @@ void World::render(SDL_Renderer* renderer) const {
 }
 
 
-void World::update() {
-    
-    for (int i = 0; i < m_cols; i++) {
-        for (int j = m_rows-1; j >= 0; j--) { //Bottom up approach
-            if (m_points(i,j).getType() != Empty) {//Non-null values(material) which should be updated
+void World::updateSand(int x, int y){
 
-                int newY = j + 1; //New y
+    if (!m_points(x,y).updated && y != m_rows-1) {//If the point hasn't been updated yet in this frame
+
+                int newY = y + 1; //New y
 
                 //This is to prevent going outside of the window
                 if (newY > m_rows-1) { //Get on top of the other sands
@@ -103,43 +102,56 @@ void World::update() {
                 } 
 
                 //if there is an empty space at newY, Empty this particle and sand the other
-                if (m_points(i, newY).getType() == Empty) {
+                if (m_points(x, newY).getType() == Empty) {
 
                     // //update the pixels y
                     // m_points(i,j).updateY(newY);
-                    addSand(i, newY, m_points(i,j).getColor());
+                    addSand(x, newY, m_points(x,y).getColor());
+                    // m_points(x,y).updated = true;
+                    // m_points(x,newY).updated = true;
 
                     //swap the two pixels on the grid
-                    m_points(i, j).updateType(Empty);
+                    m_points(x, y).updateType(Empty);
 
 
                     
                 } 
-                // else if (newY <= m_rows-1) { // Check the bottom left or right and place the particle there
-                //     if (!m_points(i-1 , newY)){ //bottom left
-                //         //update the pixels y
-                //         pointsCopy(i,j)->updateY(newY);
 
-                //         //update the location of the pixel on the grid
-                //         pointsCopy(i-1, newY) = pointsCopy(i, j);
+                //REDUNDANT
+                //We can't go down, now lets go to bottom right or bottom left
+                //Check if newY is inside the world
+                else if (newY <= m_rows-1) { 
+                    //if left is still inside the world, and is empty
+                    if (x-1>=0 && m_points(x-1 , newY).getType()==Empty){
 
-                //         //Remove the old pointer on the grid
-                //         pointsCopy(i, j) = nullptr;
-                //     } else if (!m_points(i+1 , newY)) { //bottom right
+                        addSand(x-1, newY, m_points(x,y).getColor());
+                        // m_points(x-1, newY).updated = true;
+                        // m_points(x, y).updated = true;
+                        //swap the two pixels on the grid
+                        m_points(x, y).updateType(Empty);
 
-                //         //update the pixels y
-                //         pointsCopy(i,j)->updateY(newY);
+                    //if right is still inside the world, and is empty
+                    } else if (x+1<=m_cols-1 && m_points(x+1 , newY).getType()==Empty) {
 
-                //         //update the location of the pixel on the grid
-                //         pointsCopy(i+1, newY) = pointsCopy(i, j);
+                        addSand(x+1, newY, m_points(x,y).getColor());
+                        // m_points(x+1, newY).updated = true;
+                        // m_points(x, y).updated = true;
+                        //swap the two pixels on the grid
+                        m_points(x, y).updateType(Empty);
 
-                //         //Remove the old pointer on the grid
-                //         pointsCopy(i, j) = nullptr;
-
-                //     }
-                // }
+                    }
+                }
                 
             }
+     
+}
+
+void World::update() {
+    
+    for (int i = 0; i < m_cols; i++) {
+        for (int j = m_rows-1; j >= 0; j--) { //Bottom up approach
+            if (m_points(i,j).getType() == Sand)
+                updateSand(i, j);
         }
     }
 

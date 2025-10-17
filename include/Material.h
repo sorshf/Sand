@@ -13,6 +13,8 @@ class Material {
         SDL_Color m_color;
         MaterialType m_type = Empty;
     public:
+        bool updated = false; //The material was updated in the current frame
+    public:
         Material();
         Material(int x, int y, SDL_Color color, MaterialType type);
         ~Material();
