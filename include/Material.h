@@ -14,7 +14,9 @@ class Material {
         MaterialType m_type = Empty;
     public:
         bool updated = false; //The material was updated in the current frame
+        int m_velocity = 1;
     public:
+        static const int ACCELERATION = 3;
         Material();
         Material(int x, int y, SDL_Color color, MaterialType type);
         ~Material();
@@ -46,7 +48,7 @@ Material::Material(const Material& other):
 
 
 Material::~Material() {
-    std::cout << "Deleting material object" << "\n";
+    // std::cout << "Deleting material object" << "\n";
 }
 
 SDL_Color Material::getColor() const {

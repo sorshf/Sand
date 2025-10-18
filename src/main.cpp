@@ -79,11 +79,7 @@ int main() {
         //Present everything
         SDL_RenderPresent(renderer);
 
-        for (int i = 0; i < 10; i++)
-        {
-            w.update();
-
-        }
+        w.update();
         
 
         SDL_Delay(40);

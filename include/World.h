@@ -19,7 +19,9 @@ class World {
         void addSands(int x, int y, SDL_Color color);
         void render(SDL_Renderer* renderer);
         void update();
-        void updateSand(int x, int y);
+        void updateSand(int x, int y, int dy);
+        int lastVerticalEmptySpace(int x, int startingY) const;
+        bool withinRows(int y) const;
 };
 
 World::World(int rows, int cols): 
@@ -39,6 +41,7 @@ void World::addSand(int x, int y, SDL_Color color) {
         m_points(x, y).updateType(Sand);
         m_points(x, y).updateX(x);
         m_points(x, y).updateY(y);
+        m_points(x, y).m_velocity = SDL_rand(20) + 1;
     }
      
 }
@@ -60,6 +63,7 @@ void World::addSands(int x, int y, SDL_Color color){
                 m_points(rand_x, rand_y).updateType(Sand);
                 m_points(rand_x, rand_y).updateX(rand_x);
                 m_points(rand_x, rand_y).updateY(rand_y);
+                m_points(rand_x, rand_y).m_velocity = SDL_rand(20) + 1;
                 counter++;
             }
 
@@ -89,20 +93,49 @@ void World::render(SDL_Renderer* renderer) {
 
 }
 
+    
+bool World::withinRows(int y) const{
+    return y>=0 && y<=m_rows-1;
+}
 
-void World::updateSand(int x, int y){
+
+int World::lastVerticalEmptySpace(int x, int startingY) const {
+    //If the column is totally filled, it returns the startingY
+    //Otherwise returns the first empty space going down vertically
+    while (true)
+    {
+        startingY++;
+        if (withinRows(startingY))
+        {
+            if (m_points(x, startingY).getType() != Empty)
+            {
+                return startingY-1;
+            } 
+            
+        } else {
+            return startingY-1;
+        }
+    }    
+}
+
+
+void World::updateSand(int x, int y, int dy){
 
     if (!m_points(x,y).updated && y != m_rows-1) {//If the point hasn't been updated yet in this frame
 
-                int newY = y + 1; //New y
+                int lves = lastVerticalEmptySpace(x, y);
+                int newY;
 
-                //This is to prevent going outside of the window
-                if (newY > m_rows-1) { //Get on top of the other sands
-                    newY = m_rows-1; 
-                } 
+                if (y+dy > lves)
+                {
+                    newY = lves;
+                } else {
+                    newY = y+dy;
+                }
+                
 
                 //if there is an empty space at newY, Empty this particle and sand the other
-                if (m_points(x, newY).getType() == Empty) {
+                if (lves != y) {
 
                     // //update the pixels y
                     // m_points(i,j).updateY(newY);
@@ -114,13 +147,15 @@ void World::updateSand(int x, int y){
                     m_points(x, y).updateType(Empty);
 
 
-                    
-                } 
+                    //update the velocity
+                    m_points(x, newY).m_velocity += m_points(x, newY).ACCELERATION;
+                 
 
                 //REDUNDANT
                 //We can't go down, now lets go to bottom right or bottom left
-                //Check if newY is inside the world
-                else if (newY <= m_rows-1) { 
+                //++newY goes down
+                }else if (withinRows(++newY))
+                { 
                     //if left is still inside the world, and is empty
                     if (x-1>=0 && m_points(x-1 , newY).getType()==Empty){
 
@@ -150,8 +185,10 @@ void World::update() {
     
     for (int i = 0; i < m_cols; i++) {
         for (int j = m_rows-1; j >= 0; j--) { //Bottom up approach
-            if (m_points(i,j).getType() == Sand)
-                updateSand(i, j);
+            if (m_points(i,j).getType() == Sand){
+                int dy = m_points(i,j).m_velocity;
+                updateSand(i, j, dy);
+            }
         }
     }
 
