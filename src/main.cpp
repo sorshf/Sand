@@ -7,6 +7,16 @@
 
 using namespace std;
 
+SDL_Color getRandomColor(){
+    int r = SDL_rand(256);
+    int g = SDL_rand(256);
+    int b = SDL_rand(256);
+    return SDL_Color{static_cast<Uint8>(r), 
+                     static_cast<Uint8>(g), 
+                     static_cast<Uint8>(b), 
+                     255};
+}
+
 int main() {
 
     SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO);
@@ -32,7 +42,7 @@ int main() {
 
     World w {WINDOW_HEIGHT, WINDOW_WIDTH};
     
-    SDL_Color sandColor = {255, 255, 255, 255};
+    SDL_Color baseColor;
 
     float x_click, y_click;
 
@@ -51,11 +61,12 @@ int main() {
                     break;
                 case SDL_EVENT_MOUSE_BUTTON_DOWN:
                     mousePressed = true;
+                    baseColor = getRandomColor();
                 case SDL_EVENT_MOUSE_MOTION:
                     if (mousePressed){
                         SDL_GetMouseState(&x_click, &y_click);
                         if (x_click >= 0 && y_click >= 0 && x_click<WINDOW_WIDTH && y_click<WINDOW_HEIGHT)
-                            w.addSands(SDL_floorf(x_click), SDL_floorf(y_click), sandColor);
+                            w.addSands(SDL_floorf(x_click), SDL_floorf(y_click), baseColor);
                     }
                         break;
                 //     SDL_GetMouseState(&x_click, &y_click);

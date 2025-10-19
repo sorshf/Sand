@@ -46,29 +46,32 @@ void World::addSand(int x, int y, SDL_Color color) {
      
 }
 
+SDL_Color genRandomFromBase(SDL_Color baseColor) {
+    int offset = 10;
+    int randOffset = SDL_rand(offset*2) - offset; 
+    return SDL_Color {static_cast<Uint8>(baseColor.r + randOffset),
+                      static_cast<Uint8>(baseColor.g + randOffset),
+                      static_cast<Uint8>(baseColor.b + randOffset),
+                      baseColor.a  };
+}
+
 //TODO: infinite while loop when clicked at the same spot
-void World::addSands(int x, int y, SDL_Color color){
-    int squareLength = 50;
-    int pixelGenerate = 200;
-    int counter = 0;
-    int whileCounter = 0; //To prevent infinite while loop when we can't generate enough pixels
-    while (counter < pixelGenerate || whileCounter < pixelGenerate*2)
+void World::addSands(int x, int y, SDL_Color baseColor){
+    int circleDiameter = 50;
+    int numPixelsGenerate = 200;
+    for (int i=0; i < numPixelsGenerate; i++)
     {
-        int rand_x = SDL_rand(squareLength) + x - squareLength/2;
-        int rand_y = SDL_rand(squareLength) + y - squareLength/2;
+        int rand_x = SDL_rand(circleDiameter) - circleDiameter/2;
+        int y_bound = SDL_floorf(SDL_sqrt((circleDiameter/2)*(circleDiameter/2)-(rand_x)*(rand_x)));
+        int rand_y = SDL_rand(y_bound*2) - y_bound;
+
+        rand_x += x;
+        rand_y += y;
 
         if (rand_x < m_cols && rand_y < m_rows && rand_x>=0 && rand_y>=0 &&
          m_points(rand_x, rand_y).getType() == Empty ) {
-                m_points(rand_x, rand_y).updateColor(color);
-                m_points(rand_x, rand_y).updateType(Sand);
-                m_points(rand_x, rand_y).updateX(rand_x);
-                m_points(rand_x, rand_y).updateY(rand_y);
-                m_points(rand_x, rand_y).m_velocity = SDL_rand(20) + 1;
-                counter++;
+                addSand(rand_x, rand_y, genRandomFromBase(baseColor));
             }
-
-        whileCounter ++;
-
     }
 
 }
