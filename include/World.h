@@ -39,8 +39,6 @@ void World::addSand(int x, int y, SDL_Color color) {
     {
         m_points(x, y).updateColor(color);
         m_points(x, y).updateType(Sand);
-        m_points(x, y).updateX(x);
-        m_points(x, y).updateY(y);
         m_points(x, y).m_velocity = SDL_rand(20) + 1;
     }
      
