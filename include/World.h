@@ -53,7 +53,6 @@ SDL_Color genRandomFromBase(SDL_Color baseColor) {
                       baseColor.a  };
 }
 
-//TODO: infinite while loop when clicked at the same spot
 void World::addSands(int x, int y, SDL_Color baseColor){
     int circleDiameter = 50;
     int numPixelsGenerate = 200;

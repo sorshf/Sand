@@ -24,7 +24,7 @@ int main() {
     //Create window
     SDL_Window* window;
     SDL_Renderer* renderer;
-    SDL_CreateWindowAndRenderer("Falling Sand Simulation", WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_RESIZABLE, 
+    SDL_CreateWindowAndRenderer("Falling Sand Simulation", WINDOW_WIDTH, WINDOW_HEIGHT, 0, 
         &window, &renderer);
     if (window == NULL) {
         cerr << "Couldn't create SDL window: " << SDL_GetError() << endl;
