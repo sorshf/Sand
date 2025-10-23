@@ -24,6 +24,7 @@ class Material {
         void updateColor(SDL_Color color);
         void updateType(MaterialType type);
         MaterialType getType() const;
+        bool isEmpty() const;
 };
 
 Material::Material(){}
@@ -53,6 +54,8 @@ MaterialType Material::getType() const {
     return m_type;
 }
 
-
+bool Material::isEmpty() const {
+    return m_type == Empty;
+}
 
 #endif
