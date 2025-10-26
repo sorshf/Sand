@@ -73,7 +73,12 @@ void Game::processInput() {
 
 void Game::update() {
     if (m_inputHandler.m_addMaterial && m_inputHandler.m_addSands) {
-        m_world.addSands(SDL_floorf(m_inputHandler.m_x_click), SDL_floorf(m_inputHandler.m_y_click), m_baseColor);
+        // m_world.addSands(SDL_floorf(m_inputHandler.m_x_click), SDL_floorf(m_inputHandler.m_y_click), m_baseColor);
+        m_world.addMaterials(SDL_floorf(m_inputHandler.m_x_click), SDL_floorf(m_inputHandler.m_y_click),
+                 50, 200, 20, m_baseColor, Sand);
+    } else if (m_inputHandler.m_addMaterial && m_inputHandler.m_addWoods) {
+        m_world.addMaterials(SDL_floorf(m_inputHandler.m_x_click), SDL_floorf(m_inputHandler.m_y_click),
+                        10, 1000, 0, {150, 111, 51, 255}, Wood);
     }
 }
 

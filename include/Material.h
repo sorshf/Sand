@@ -4,7 +4,7 @@
 #include <SDL3/SDL.h>
 #include <iostream>
 
-enum MaterialType {Empty=0, Sand, Snow, Fire};
+enum MaterialType {Empty=0, Sand, Wood, Fire};
 
 class Material {
     private:

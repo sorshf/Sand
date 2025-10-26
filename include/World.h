@@ -15,8 +15,8 @@ class World {
     public:
         World(int cols, int rows);
         ~World();
-        void addSand(int x, int y, SDL_Color color);
-        void addSands(int x, int y, SDL_Color color);
+        void addMaterial(int x, int y, SDL_Color color, MaterialType type, int velocity);
+        void addMaterials(int x, int y, int diameter, int numPixels, int maxVelocity, SDL_Color baseColor, MaterialType type);
         void render(SDL_Renderer* renderer);
         void update();
         void updateSand(int x, int y, int dy);
@@ -36,16 +36,6 @@ World::~World() {
     SDL_Log("Deleting the World object");
 }
 
-void World::addSand(int x, int y, SDL_Color color) {
-    if (m_points(x, y).isEmpty()) //If it is empty
-    {
-        m_points(x, y).updateColor(color);
-        m_points(x, y).updateType(Sand);
-        m_points(x, y).m_velocity = SDL_rand(20) + 1;
-    }
-     
-}
-
 SDL_Color genRandomFromBase(SDL_Color baseColor) {
     int offset = 10;
     int randOffset = SDL_rand(offset*2) - offset; 
@@ -55,9 +45,18 @@ SDL_Color genRandomFromBase(SDL_Color baseColor) {
                       baseColor.a  };
 }
 
-void World::addSands(int x, int y, SDL_Color baseColor){
-    int circleDiameter = 50;
-    int numPixelsGenerate = 200;
+void World::addMaterial(int x, int y, SDL_Color color, MaterialType type, int velocity) {
+    if (m_points(x, y).isEmpty()) {
+
+        m_points(x, y).updateColor(color);
+        m_points(x, y).updateType(type);
+        m_points(x, y).m_velocity = velocity;
+    }
+}
+
+void World::addMaterials(int x, int y, int diameter, int numPixels, int maxVelocity, SDL_Color baseColor, MaterialType type){
+    int circleDiameter = diameter;
+    int numPixelsGenerate = numPixels;
     for (int i=0; i < numPixelsGenerate; i++)
     {
         int rand_x = SDL_rand(circleDiameter) - circleDiameter/2;
@@ -69,7 +68,7 @@ void World::addSands(int x, int y, SDL_Color baseColor){
 
         if (rand_x < m_cols && rand_y < m_rows && rand_x>=0 && rand_y>=0 &&
          m_points(rand_x, rand_y).isEmpty() ) {
-                addSand(rand_x, rand_y, genRandomFromBase(baseColor));
+                addMaterial(rand_x, rand_y, genRandomFromBase(baseColor), type, SDL_rand(maxVelocity));
             }
     }
 
