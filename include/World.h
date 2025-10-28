@@ -5,6 +5,8 @@
 #include "Material.h"
 #include "Grid.h"
 
+enum VerticalDirection {UP = -1, DOWN = 1, RANDOM_V = 0};
+enum HorizontalDirection {LEFT = -1, RIGHT = 1, RANDOM_H = 0};
 
 class World {
     private:
@@ -20,10 +22,14 @@ class World {
         void render(SDL_Renderer* renderer);
         void update();
         void updateSand(int x, int y, int dy);
-        int lastVerticalEmptySpace(int x, int startingY) const;
+        int lastVerticalEmptySpace(int x, int startingY, VerticalDirection dir) const;
+        int lastHorizontalEmptySpace(int startingX, int y, HorizontalDirection dir) const;
         bool withinRows(int y) const;
         bool withinCols(int x) const;
         void swapPixels(int x1, int y1, int x2, int y2);
+        bool moveParticleVertically(int x, int y, int dy, VerticalDirection dir);
+        bool moveParticleHorizontally(int x, int y, int dx, HorizontalDirection dir);
+        bool moveParticleDiagonally(int x, int y, HorizontalDirection horDir, VerticalDirection verDir);
 };
 
 World::World(int rows, int cols): 
@@ -103,21 +109,41 @@ bool World::withinCols(int x) const{
     return x>=0 && x<=m_cols-1;
 }
 
-int World::lastVerticalEmptySpace(int x, int startingY) const {
+int World::lastVerticalEmptySpace(int x, int startingY, VerticalDirection dir) const {
     //If the column is totally filled, it returns the startingY
     //Otherwise returns the first empty space going down vertically
     while (true)
     {
-        startingY++;
+        startingY += dir;
         if (withinRows(startingY))
         {
             if (!m_points(x, startingY).isEmpty())
             {
-                return startingY-1;
+                return startingY += dir*(-1);
             } 
             
         } else {
-            return startingY-1;
+            return startingY += dir*(-1);
+        }
+    }    
+}
+
+
+int World::lastHorizontalEmptySpace(int startingX, int y, HorizontalDirection dir) const {
+    //If the column is totally filled, it returns the startingY
+    //Otherwise returns the first empty space going down vertically
+    while (true)
+    {
+        startingX += dir;
+        if (withinCols(startingX))
+        {
+            if (!m_points(startingX, y).isEmpty())
+            {
+                return startingX += dir*(-1);
+            } 
+            
+        } else {
+            return startingX += dir*(-1);
         }
     }    
 }
@@ -142,47 +168,93 @@ void World::swapPixels(int x1, int y1, int x2, int y2) {
     m_points(x2,y2).m_velocity = m_velocity1;
 }
 
+
+bool World::moveParticleVertically(int x, int y, int dy, VerticalDirection dir) {
+
+    //Find the last empty space on the column for the empty space
+    int lves = lastVerticalEmptySpace(x, y, dir);
+    int newY;
+
+    //If there is a collision ([y+dy*dir] > lves), the newY for the particle is the last vertical empty space
+    if (y+dy*dir > lves) {
+        newY = lves;
+    } else { //Otherwise the newY is calculated normally
+        newY = y+dy*dir;
+    }
+
+    //if there is an empty space at newY, Swap the particles, otherwise do nothing (keep the particle pos as is)
+    if (lves != y) {
+
+        swapPixels(x, y, x, newY);
+        //update the velocity
+        m_points(x, newY).m_velocity += m_points(x, newY).ACCELERATION;
+
+        return true;
+
+    }
+    return false;
+}
+
+bool World::moveParticleHorizontally(int x, int y, int dx, HorizontalDirection dir) {
+
+    //Find the last empty space on the row for the empty space
+    int lhes = lastHorizontalEmptySpace(x, y, dir);
+    int newX;
+
+    //If there is a collision ([x+dx*dir] > lhes), the newx for the particle is the last horizontal empty space
+    if (x+dx*dir > lhes) {
+        newX = lhes;
+    } else { //Otherwise the newY is calculated normally
+        newX = x+dx*dir;
+    }
+
+    //if there is an empty space at newX, Swap the particles, otherwise do nothing (keep the particle pos as is)
+    if (lhes != x) {
+
+        swapPixels(x, y, newX, y);
+        return true;
+    }
+    
+    return false;
+}
+
+bool World::moveParticleDiagonally(int x, int y, HorizontalDirection horDir, VerticalDirection verDir) {
+
+    if (horDir == RANDOM_H) {
+        horDir = SDL_rand(2)==1 ? LEFT : RIGHT;
+    }
+    
+    if (verDir == RANDOM_V) {
+        verDir = SDL_rand(2)==1 ? DOWN : UP;
+    }
+
+    //Make sure the particle is within the window
+    int newX = withinCols(x + horDir) ? x + horDir : x;
+    int newY = withinRows(y + verDir) ? y + verDir : y;
+
+    //If the new position is empty and different from the original, we swap the points
+    if (newX != x && newY != y && m_points(newX , newY).isEmpty()) {
+        swapPixels(x, y, newX, newY);
+        return true;
+    }
+
+    return false;
+}
+
 void World::updateSand(int x, int y, int dy){
 
     //If the point hasn't been updated yet in this frame and not on the last row
     if (!m_points(x,y).updated && y != m_rows-1) {
 
-        //Find the last empty space on the column for the empty space
-        int lves = lastVerticalEmptySpace(x, y);
-        int newY;
-
-        //If there is a collision ([y+dy] > lves), the newY for the sand is the last vertical empty space
-        if (y+dy > lves) {
-            newY = lves;
-        } else { //Otherwise the newY is calculated normally
-            newY = y+dy;
+        //half the time, we also move the particle diagonally in addition to vertically
+        if (SDL_rand(2) == 1){
+            moveParticleDiagonally(x, y, RANDOM_H, DOWN);
         }
-                
-        //if there is an empty space at newY, Swap the particles
-        if (lves != y) {
-
-            swapPixels(x, y, x, newY);
-            //update the velocity
-            m_points(x, newY).m_velocity += m_points(x, newY).ACCELERATION;
-
-        //We can't go down, now lets go to bottom right or bottom left
-        //++newY goes down
-        } else if (withinRows(++newY)) { 
-            //if left is still inside the world, and is empty
-            if (withinCols(x-1) && m_points(x-1 , newY).isEmpty()){
-
-                swapPixels(x, y, x-1, newY);
-                m_points(x-1, newY).m_velocity = 1;
-
-            //if right is still inside the world, and is empty
-            } else if (withinCols(x+1) && m_points(x+1 , newY).isEmpty()) {
-                
-                swapPixels(x, y, x+1, newY);
-                m_points(x+1, newY).m_velocity = 1;
-
-            }
-        }
-                
+        
+        //If we couldn't move the particle down, we move it diagonally
+        if (!moveParticleVertically(x, y, dy, DOWN)){
+            moveParticleDiagonally(x, y, RANDOM_H, DOWN);
+        }       
     }
      
 }
