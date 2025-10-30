@@ -26,6 +26,7 @@ class Material {
         void updateType(MaterialType type);
         MaterialType getType() const;
         bool isEmpty() const;
+        bool isWood() const;
         void burn();
         void reset();
 };
@@ -59,6 +60,10 @@ MaterialType Material::getType() const {
 
 bool Material::isEmpty() const {
     return m_type == Empty;
+}
+
+bool Material::isWood() const {
+    return m_type == Wood;
 }
 
 void Material::burn() {

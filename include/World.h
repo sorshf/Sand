@@ -33,6 +33,7 @@ class World {
         void burn(int x, int y, int side);
         void diagnose(int x, int y, int side);
         void updateWood(int x, int y);
+        void burnSurrounding(int x, int y, int side=1);
 };
 
 World::World(int rows, int cols): 
@@ -98,6 +99,22 @@ void World::burn(int x, int y, int side){
     }
     
     
+}
+
+void World::burnSurrounding(int x, int y, int side) {
+    //Square around point (x,y) with length side*2+1 will burn
+    for (int i = x-side; i <= x+side; i++) {
+        for (int j = y-side; j <= y+side; j++) {
+            
+            if (withinCols(i) && withinRows(j) && 
+                    m_points(i, j).isWood() && m_points(i, j).m_burnDegree == 0 &&
+                    i != x && j != y) {
+
+                m_points(i, j).burn();
+            }
+            
+        }    
+    } 
 }
 
 void World::diagnose(int x, int y, int side){
@@ -314,6 +331,9 @@ void World::updateWood(int x, int y) {
         SDL_Color newColor = SDL_rand(2) == 1 ? red : yellow;
         m_points(x,y).updateColor(newColor);
         m_points(x,y).m_burnDegree = burnDegree + 1;
+
+        //Burn the surrounding Wood
+        burnSurrounding(x, y, 1);
 
         //Move particle randomly diagonally
         moveParticleDiagonally(x, y, RANDOM_H, RANDOM_V, false);
