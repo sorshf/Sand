@@ -21,7 +21,7 @@ class World {
         void addMaterials(int x, int y, int diameter, int numPixels, int maxVelocity, SDL_Color baseColor, MaterialType type);
         void render(SDL_Renderer* renderer);
         void update();
-        void updateSand(int x, int y, int dy);
+        void updateSand(int x, int y);
         int lastVerticalEmptySpace(int x, int startingY, VerticalDirection dir) const;
         int lastHorizontalEmptySpace(int startingX, int y, HorizontalDirection dir) const;
         bool withinRows(int y) const;
@@ -35,6 +35,7 @@ class World {
         void updateWood(int x, int y);
         void burnSurrounding(int x, int y, int side=1);
         void updateSmoke(int i, int j);
+        void updatePoint(int i, int j);
 };
 
 World::World(int rows, int cols): 
@@ -302,7 +303,10 @@ bool World::moveParticleDiagonally(int x, int y, int dx, int dy, HorizontalDirec
     return false;
 }
 
-void World::updateSand(int x, int y, int dy){
+void World::updateSand(int x, int y){
+
+    //Indicating the vertical change in position per frame
+    int dy = m_points(x,y).m_velocity;
 
     //If the point hasn't been updated yet in this frame and not on the last row
     if (!m_points(x,y).updated && y != m_rows-1) {
@@ -333,8 +337,10 @@ void World::updateWood(int x, int y) {
         m_points(x,y).updateColor(newColor);
         m_points(x,y).m_burnDegree = burnDegree + 1;
 
-        //Burn the surrounding Wood
-        burnSurrounding(x, y, 1);
+        //Burn the surrounding Wood 50% of the time
+        if (SDL_rand(2) == 1) {
+            burnSurrounding(x, y, 1);
+        }
 
         //Move particle randomly diagonally
         moveParticleDiagonally(x, y, 1, 1, RANDOM_H, RANDOM_V, false);
@@ -360,19 +366,34 @@ void World::updateSmoke(int x, int y) {
 
 }
 
+
+void World::updatePoint(int x, int y) {
+    if (m_points(x,y).getType() == Sand){
+        updateSand(x, y);
+    } else if (m_points(x,y).getType() == Wood) {
+        updateWood(x, y);
+    } else if (m_points(x,y).getType() == Smoke) {
+        updateSmoke(x, y);
+    }
+}
+
 void World::update() {
     
-    for (int i = 0; i < m_cols; i++) {
-        for (int j = m_rows-1; j >= 0; j--) { //Bottom up approach
-            if (m_points(i,j).getType() == Sand){
-                int dy = m_points(i,j).m_velocity;
-                updateSand(i, j, dy);
-            } else if (m_points(i,j).getType() == Wood) {
-                updateWood(i, j);
-            } else if (m_points(i,j).getType() == Smoke) {
-                updateSmoke(i, j);
+    //Random chance of updating the frame from left to right or right to left
+    if (SDL_rand(2) == 1) {
+        //Left to Right update
+        for (int i = 0; i < m_cols; i++) {
+            for (int j = m_rows-1; j >= 0; j--) { //Bottom up approach
+                updatePoint(i, j);
             }
         }
+    } else {
+        //Right to Left update
+        for (int i = m_cols-1; i >= 0; i--) {
+            for (int j = m_rows-1; j >= 0; j--) { //Bottom up approach
+                updatePoint(i, j);
+            }
+    }
     }
 
 }
