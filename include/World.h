@@ -29,11 +29,12 @@ class World {
         void swapPixels(int x1, int y1, int x2, int y2);
         bool moveParticleVertically(int x, int y, int dy, VerticalDirection dir);
         bool moveParticleHorizontally(int x, int y, int dx, HorizontalDirection dir);
-        bool moveParticleDiagonally(int x, int y, HorizontalDirection horDir, VerticalDirection verDir, bool ignoreCollision = false);
+        bool moveParticleDiagonally(int x, int y, int dx, int dy, HorizontalDirection horDir, VerticalDirection verDir, bool ignoreCollision = false);
         void burn(int x, int y, int side);
         void diagnose(int x, int y, int side);
         void updateWood(int x, int y);
         void burnSurrounding(int x, int y, int side=1);
+        void updateSmoke(int i, int j);
 };
 
 World::World(int rows, int cols): 
@@ -123,8 +124,8 @@ void World::diagnose(int x, int y, int side){
 
     for (int i = topLeftX; i < x+side/2; i++) {
         for (int j = topLeftY; j < y+side/2; j++) {
-            if (withinRows(j) && withinCols(i) && m_points(i, j).getType()==Wood) {
-                SDL_Log("%d", m_points(i, j).m_burnDegree);
+            if (withinRows(j) && withinCols(i) && m_points(i, j).getType()==Smoke) {
+                SDL_Log("x=%d, y= %d", i, j);
             }
             
         }
@@ -275,7 +276,7 @@ bool World::moveParticleHorizontally(int x, int y, int dx, HorizontalDirection d
     return false;
 }
 
-bool World::moveParticleDiagonally(int x, int y, HorizontalDirection horDir, VerticalDirection verDir, bool ignoreCollision) {
+bool World::moveParticleDiagonally(int x, int y, int dx, int dy, HorizontalDirection horDir, VerticalDirection verDir, bool ignoreCollision) {
 
     if (horDir == RANDOM_H) {
         horDir = SDL_rand(2)==1 ? LEFT : RIGHT;
@@ -286,8 +287,8 @@ bool World::moveParticleDiagonally(int x, int y, HorizontalDirection horDir, Ver
     }
 
     //Make sure the particle is within the window
-    int newX = withinCols(x + horDir) ? x + horDir : x;
-    int newY = withinRows(y + verDir) ? y + verDir : y;
+    int newX = withinCols(x + horDir*dx) ? x + horDir*dx : x;
+    int newY = withinRows(y + verDir*dy) ? y + verDir*dy : y;
 
     //If the new position is empty and different from the original, we swap the points
     if (ignoreCollision) {
@@ -308,12 +309,12 @@ void World::updateSand(int x, int y, int dy){
 
         //half the time, we also move the particle diagonally in addition to vertically
         if (SDL_rand(2) == 1){
-            moveParticleDiagonally(x, y, RANDOM_H, DOWN);
+            moveParticleDiagonally(x, y, 1, 1, RANDOM_H, DOWN);
         }
         
         //If we couldn't move the particle down, we move it diagonally
         if (!moveParticleVertically(x, y, dy, DOWN)){
-            moveParticleDiagonally(x, y, RANDOM_H, DOWN);
+            moveParticleDiagonally(x, y, 1, 1, RANDOM_H, DOWN);
         }       
     }
      
@@ -336,12 +337,26 @@ void World::updateWood(int x, int y) {
         burnSurrounding(x, y, 1);
 
         //Move particle randomly diagonally
-        moveParticleDiagonally(x, y, RANDOM_H, RANDOM_V, false);
+        moveParticleDiagonally(x, y, 1, 1, RANDOM_H, RANDOM_V, false);
     } else if (burnDegree >= 50) {
         m_points(x,y).updateColor({0, 255, 0, 255});
-        m_points(x,y).reset();
+        m_points(x,y).smoke();
     }
     
+}
+
+void World::updateSmoke(int x, int y) {
+    //Smoke reached the top of the world, remove it
+    if (y <= 10) {
+        m_points(x, y).reset();
+    } else {
+        moveParticleDiagonally(x, y, 4, 5, RANDOM_H, UP, false);
+        //Move the smoke particles diagonally randomly upward
+        //If couldn't move up, remove them
+        // if(!moveParticleDiagonally(x, y, 15, 30, RANDOM_H, UP, false)) {
+        //     m_points(x, y).reset();
+        // }
+    }
 
 }
 
@@ -354,6 +369,8 @@ void World::update() {
                 updateSand(i, j, dy);
             } else if (m_points(i,j).getType() == Wood) {
                 updateWood(i, j);
+            } else if (m_points(i,j).getType() == Smoke) {
+                updateSmoke(i, j);
             }
         }
     }

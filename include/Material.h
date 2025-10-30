@@ -28,6 +28,7 @@ class Material {
         bool isEmpty() const;
         bool isWood() const;
         void burn();
+        void smoke();
         void reset();
 };
 
@@ -68,6 +69,11 @@ bool Material::isWood() const {
 
 void Material::burn() {
     m_burnDegree = 1;
+}
+
+void Material::smoke() {
+    m_type = Smoke;
+    m_color = {128, 128, 128, 255};
 }
 
 void Material::reset() {
