@@ -4,7 +4,7 @@
 #include <SDL3/SDL.h>
 #include <iostream>
 
-enum MaterialType {Empty=0, Sand, Wood, Fire};
+enum MaterialType {Empty=0, Sand, Wood, Smoke};
 
 class Material {
     private:
@@ -13,6 +13,7 @@ class Material {
     public:
         bool updated = false; //The material was updated in the current frame
         int m_velocity = 1;
+        int m_burnDegree = 0;
     public:
         static const int ACCELERATION = 3;
         Material();
@@ -25,6 +26,8 @@ class Material {
         void updateType(MaterialType type);
         MaterialType getType() const;
         bool isEmpty() const;
+        void burn();
+        void reset();
 };
 
 Material::Material(){}
@@ -56,6 +59,18 @@ MaterialType Material::getType() const {
 
 bool Material::isEmpty() const {
     return m_type == Empty;
+}
+
+void Material::burn() {
+    m_burnDegree = 1;
+}
+
+void Material::reset() {
+    m_color = {0, 0, 0, 255};
+    m_type = Empty;
+    updated = false;
+    m_velocity = 1;
+    m_burnDegree = 0;
 }
 
 #endif

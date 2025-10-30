@@ -17,6 +17,8 @@ public:
     bool m_addMaterial = false;
     bool m_addSands = true;
     bool m_addWoods = false;
+    bool m_burn = false;
+    bool m_diagnose = false;
     float m_x_click = 0.0f;
     float m_y_click = 0.0f;
     InputHandler(int heightLimit, int widthLimit);
@@ -70,9 +72,23 @@ void InputHandler::handleInput(){
                 if (m_e.key.key == SDLK_W) {
                     m_addWoods = true;
                     m_addSands = false;
+                    m_burn = false;
+                    m_diagnose = false;
                 } else if (m_e.key.key == SDLK_S) {
                     m_addWoods = false;
                     m_addSands = true;
+                    m_burn = false;
+                    m_diagnose = false;
+                } else if (m_e.key.key == SDLK_F) {
+                    m_addWoods = false;
+                    m_addSands = false;
+                    m_burn = true;
+                    m_diagnose = false;
+                } else if (m_e.key.key == SDLK_D) {
+                    m_addWoods = false;
+                    m_addSands = false;
+                    m_burn = false;
+                    m_diagnose = true;
                 }
                 break;
             default:

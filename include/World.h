@@ -29,7 +29,10 @@ class World {
         void swapPixels(int x1, int y1, int x2, int y2);
         bool moveParticleVertically(int x, int y, int dy, VerticalDirection dir);
         bool moveParticleHorizontally(int x, int y, int dx, HorizontalDirection dir);
-        bool moveParticleDiagonally(int x, int y, HorizontalDirection horDir, VerticalDirection verDir);
+        bool moveParticleDiagonally(int x, int y, HorizontalDirection horDir, VerticalDirection verDir, bool ignoreCollision = false);
+        void burn(int x, int y, int side);
+        void diagnose(int x, int y, int side);
+        void updateWood(int x, int y);
 };
 
 World::World(int rows, int cols): 
@@ -78,6 +81,40 @@ void World::addMaterials(int x, int y, int diameter, int numPixels, int maxVeloc
             }
     }
 
+}
+
+void World::burn(int x, int y, int side){
+    int topLeftX = (x - side/2);
+    int topLeftY = (y - side/2);
+
+    for (int i = topLeftX; i < x+side/2; i++) {
+        for (int j = topLeftY; j < y+side/2; j++) {
+            if (withinRows(j) && withinCols(i) && m_points(i, j).getType()==Wood) {
+                m_points(i, j).burn();
+            }
+            
+        }
+        
+    }
+    
+    
+}
+
+void World::diagnose(int x, int y, int side){
+    int topLeftX = (x - side/2);
+    int topLeftY = (y - side/2);
+
+    for (int i = topLeftX; i < x+side/2; i++) {
+        for (int j = topLeftY; j < y+side/2; j++) {
+            if (withinRows(j) && withinCols(i) && m_points(i, j).getType()==Wood) {
+                SDL_Log("%d", m_points(i, j).m_burnDegree);
+            }
+            
+        }
+        
+    }
+    
+    
 }
 
 void World::render(SDL_Renderer* renderer) {
@@ -154,18 +191,21 @@ void World::swapPixels(int x1, int y1, int x2, int y2) {
     MaterialType m_type1 = m_points(x1,y1).getType();
     bool updated1 = m_points(x1,y1).updated; 
     int m_velocity1 = m_points(x1,y1).m_velocity;
+    int m_burnDegree1 = m_points(x1,y1).m_burnDegree;
 
     //update pixel 1 with pixel 2 data
     m_points(x1,y1).updateColor(m_points(x2,y2).getColor());
     m_points(x1,y1).updateType(m_points(x2,y2).getType());
     m_points(x1,y1).updated = m_points(x2,y2).updated;
     m_points(x1,y1).m_velocity = m_points(x2,y2).m_velocity;
+    m_points(x1,y1).m_burnDegree = m_points(x2,y2).m_burnDegree;
 
     //update pixel2 with pixel 1 data
     m_points(x2,y2).updateColor(m_color1);
     m_points(x2,y2).updateType(m_type1);
     m_points(x2,y2).updated = updated1;
     m_points(x2,y2).m_velocity = m_velocity1;
+    m_points(x2,y2).m_burnDegree = m_burnDegree1;
 }
 
 
@@ -218,7 +258,7 @@ bool World::moveParticleHorizontally(int x, int y, int dx, HorizontalDirection d
     return false;
 }
 
-bool World::moveParticleDiagonally(int x, int y, HorizontalDirection horDir, VerticalDirection verDir) {
+bool World::moveParticleDiagonally(int x, int y, HorizontalDirection horDir, VerticalDirection verDir, bool ignoreCollision) {
 
     if (horDir == RANDOM_H) {
         horDir = SDL_rand(2)==1 ? LEFT : RIGHT;
@@ -233,7 +273,10 @@ bool World::moveParticleDiagonally(int x, int y, HorizontalDirection horDir, Ver
     int newY = withinRows(y + verDir) ? y + verDir : y;
 
     //If the new position is empty and different from the original, we swap the points
-    if (newX != x && newY != y && m_points(newX , newY).isEmpty()) {
+    if (ignoreCollision) {
+        swapPixels(x, y, newX, newY);
+        return true;
+    } else if (m_points(newX , newY).isEmpty()) {
         swapPixels(x, y, newX, newY);
         return true;
     }
@@ -259,6 +302,29 @@ void World::updateSand(int x, int y, int dy){
      
 }
 
+void World::updateWood(int x, int y) {
+
+    int burnDegree = m_points(x,y).m_burnDegree;
+    if (burnDegree > 0 && burnDegree < 50) {
+
+
+        //Change the color of the particle mimicking burning
+        SDL_Color red = {255, 0, 0, 255};
+        SDL_Color yellow = {255, 255, 0, 255};
+        SDL_Color newColor = SDL_rand(2) == 1 ? red : yellow;
+        m_points(x,y).updateColor(newColor);
+        m_points(x,y).m_burnDegree = burnDegree + 1;
+
+        //Move particle randomly diagonally
+        moveParticleDiagonally(x, y, RANDOM_H, RANDOM_V, false);
+    } else if (burnDegree >= 50) {
+        m_points(x,y).updateColor({0, 255, 0, 255});
+        m_points(x,y).reset();
+    }
+    
+
+}
+
 void World::update() {
     
     for (int i = 0; i < m_cols; i++) {
@@ -266,6 +332,8 @@ void World::update() {
             if (m_points(i,j).getType() == Sand){
                 int dy = m_points(i,j).m_velocity;
                 updateSand(i, j, dy);
+            } else if (m_points(i,j).getType() == Wood) {
+                updateWood(i, j);
             }
         }
     }
