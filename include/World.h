@@ -337,8 +337,8 @@ void World::updateWood(int x, int y) {
         m_points(x,y).updateColor(newColor);
         m_points(x,y).m_burnDegree = burnDegree + 1;
 
-        //Burn the surrounding Wood 50% of the time
-        if (SDL_rand(2) == 1) {
+        //Burn the surrounding Wood 33% of the time
+        if (SDL_rand(3) == 0) {
             burnSurrounding(x, y, 1);
         }
 
@@ -356,12 +356,7 @@ void World::updateSmoke(int x, int y) {
     if (y <= 10) {
         m_points(x, y).reset();
     } else {
-        moveParticleDiagonally(x, y, 4, 5, RANDOM_H, UP, false);
-        //Move the smoke particles diagonally randomly upward
-        //If couldn't move up, remove them
-        // if(!moveParticleDiagonally(x, y, 15, 30, RANDOM_H, UP, false)) {
-        //     m_points(x, y).reset();
-        // }
+        moveParticleDiagonally(x, y, SDL_rand(4), SDL_rand(4)+3, RANDOM_H, UP, false);
     }
 
 }

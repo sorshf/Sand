@@ -18,7 +18,8 @@ public:
     bool m_addSands = true;
     bool m_addWoods = false;
     bool m_burn = false;
-    bool m_diagnose = false;
+    bool m_saveImage = false;
+    SDL_Color m_sandBaseColor;
     float m_x_click = 0.0f;
     float m_y_click = 0.0f;
     InputHandler(int heightLimit, int widthLimit);
@@ -42,6 +43,16 @@ bool InputHandler::mouseWithinBounds(){
 
 }
 
+SDL_Color getRandomColor(){
+    int r = SDL_rand(256);
+    int g = SDL_rand(256);
+    int b = SDL_rand(256);
+    return SDL_Color{static_cast<Uint8>(r), 
+                     static_cast<Uint8>(g), 
+                     static_cast<Uint8>(b), 
+                     255};
+}
+
 void InputHandler::handleInput(){
 
     while (SDL_PollEvent(&m_e)) {            
@@ -55,6 +66,7 @@ void InputHandler::handleInput(){
                 break;
             case SDL_EVENT_MOUSE_BUTTON_DOWN:
                 m_mousePressed = true;
+                m_sandBaseColor = getRandomColor();
                 SDL_GetMouseState(&m_x_click, &m_y_click);
                 if (mouseWithinBounds()) {
                     m_addMaterial = true;
@@ -73,22 +85,22 @@ void InputHandler::handleInput(){
                     m_addWoods = true;
                     m_addSands = false;
                     m_burn = false;
-                    m_diagnose = false;
+                    m_saveImage = false;
                 } else if (m_e.key.key == SDLK_S) {
                     m_addWoods = false;
                     m_addSands = true;
                     m_burn = false;
-                    m_diagnose = false;
+                    m_saveImage = false;
                 } else if (m_e.key.key == SDLK_F) {
                     m_addWoods = false;
                     m_addSands = false;
                     m_burn = true;
-                    m_diagnose = false;
+                    m_saveImage = false;
                 } else if (m_e.key.key == SDLK_D) {
                     m_addWoods = false;
                     m_addSands = false;
                     m_burn = false;
-                    m_diagnose = true;
+                    m_saveImage = true;
                 }
                 break;
             default:

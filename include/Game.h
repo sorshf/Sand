@@ -18,7 +18,6 @@ private:
     InputHandler m_inputHandler;
     SDL_Window* m_window = nullptr;
     SDL_Renderer* m_renderer = nullptr;
-    SDL_Color m_baseColor {194, 178, 128, 1}; //to be removed with better logic
     bool m_quit = false;
 public:
     Game(const char* title, int width, int height);
@@ -27,17 +26,8 @@ public:
     void update();
     void render();
     void run();
+    void saveImage();
 };
-
-SDL_Color getRandomColor(){
-    int r = SDL_rand(256);
-    int g = SDL_rand(256);
-    int b = SDL_rand(256);
-    return SDL_Color{static_cast<Uint8>(r), 
-                     static_cast<Uint8>(g), 
-                     static_cast<Uint8>(b), 
-                     255};
-}
 
 Game::Game(const char* title, int width, int height):
     m_title{title}, m_width(width), m_height(height), m_world{height, width}, m_inputHandler{height, width}  {
@@ -73,16 +63,13 @@ void Game::processInput() {
 
 void Game::update() {
     if (m_inputHandler.m_addMaterial && m_inputHandler.m_addSands) {
-        // m_world.addSands(SDL_floorf(m_inputHandler.m_x_click), SDL_floorf(m_inputHandler.m_y_click), m_baseColor);
         m_world.addMaterials(SDL_floorf(m_inputHandler.m_x_click), SDL_floorf(m_inputHandler.m_y_click),
-                 50, 200, 20, m_baseColor, Sand);
+                 50, 200, 20, m_inputHandler.m_sandBaseColor, Sand);
     } else if (m_inputHandler.m_addMaterial && m_inputHandler.m_addWoods) {
         m_world.addMaterials(SDL_floorf(m_inputHandler.m_x_click), SDL_floorf(m_inputHandler.m_y_click),
-                        20, 1000, 0, {150, 111, 51, 255}, Wood);
+                        16, 250, 0, {150, 111, 51, 255}, Wood);
     } else if (m_inputHandler.m_addMaterial && m_inputHandler.m_burn) {
         m_world.burn(SDL_floorf(m_inputHandler.m_x_click), SDL_floorf(m_inputHandler.m_y_click), 20);
-    } else if(m_inputHandler.m_addMaterial && m_inputHandler.m_diagnose) {
-        m_world.diagnose(SDL_floorf(m_inputHandler.m_x_click), SDL_floorf(m_inputHandler.m_y_click), 20);
     }
 }
 
@@ -94,6 +81,9 @@ void Game::render() {
     //Graph
     m_world.render(m_renderer);
 
+    if(m_inputHandler.m_addMaterial && m_inputHandler.m_saveImage) {
+        saveImage();
+    }
     
     //Present everything
     SDL_RenderPresent(m_renderer);
@@ -112,5 +102,10 @@ void Game::run() {
     }
 }
 
+void Game::saveImage() {
+    SDL_Surface *surface = SDL_RenderReadPixels(m_renderer, NULL);
+    SDL_SaveBMP(surface, "./Snapshot.bmp");
+    SDL_DestroySurface(surface);
+}
 
 #endif
