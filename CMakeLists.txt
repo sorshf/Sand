@@ -34,8 +34,5 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 # Link SDL3
 target_link_libraries(${PROJECT_NAME} PRIVATE SDL3::SDL3)
 
-# If you want warnings and useful flags
-target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wno-unused-parameter)
-
 # For IDEs: make source groups by folders
 source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${SOURCES})
