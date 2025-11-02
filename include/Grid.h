@@ -28,7 +28,7 @@ class Grid {
 //Destructor
 template<class T>
 Grid<T>::~Grid() {
-    SDL_Log("Deleting Grid object");
+    // SDL_Log("Deleting Grid object");
 
 }
 
@@ -36,7 +36,7 @@ Grid<T>::~Grid() {
 template<class T>
 Grid<T>::Grid(int rows, int cols)
     : m_rows(rows), m_cols(cols), m_data(rows * cols) {
-    SDL_Log("Creating Grid object");
+    // SDL_Log("Creating Grid object");
 }
 
 //() operator overload

@@ -4,12 +4,12 @@
 
 World::World(int rows, int cols): 
     m_rows(rows), m_cols(cols), m_points(rows, cols) {
-    SDL_Log("Creating the World object");
+    // SDL_Log("Creating the World object");
 
 }
 
 World::~World() {
-    SDL_Log("Deleting the World object");
+    // SDL_Log("Deleting the World object");
 }
 
 SDL_Color genRandomFromBase(SDL_Color baseColor) {
