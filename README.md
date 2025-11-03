@@ -36,6 +36,6 @@ git clone https://github.com/sorshf/Sand.git
 cd Sand
 mkdir build && cd build
 cmake ..
-make
+cmake --build . --config Release
 ./bin/Sand
 ```
