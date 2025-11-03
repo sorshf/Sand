@@ -81,3 +81,10 @@ void InputHandler::handleInput(){
     }
 
 }
+
+void InputHandler::reset() {
+    m_addWoods = false;
+    m_addSands = false;
+    m_burn = false;
+    m_saveImage = false;
+}

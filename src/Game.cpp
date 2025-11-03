@@ -1,4 +1,5 @@
 #include "Game.h"
+#include <ctime>
 
 Game::Game(const char* title, int width, int height):
     m_title{title}, m_width(width), m_height(height), m_world{height, width}, m_inputHandler{height, width}  {
@@ -54,6 +55,7 @@ void Game::render() {
 
     if(m_inputHandler.m_addMaterial && m_inputHandler.m_saveImage) {
         saveImage();
+        m_inputHandler.reset();
     }
     
     //Present everything
@@ -75,6 +77,14 @@ void Game::run() {
 
 void Game::saveImage() {
     SDL_Surface *surface = SDL_RenderReadPixels(m_renderer, NULL);
-    SDL_SaveBMP(surface, "./Snapshot.bmp");
+    
+    time_t timestamp = time(NULL);
+    struct tm datetime = *localtime(&timestamp);
+
+    char output[50];
+
+    strftime(output, 50, "./Snapshot %I-%M-%S %m-%d-%y.bmp", &datetime);
+
+    SDL_SaveBMP(surface, output);
     SDL_DestroySurface(surface);
 }

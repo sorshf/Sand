@@ -26,6 +26,7 @@ public:
     ~InputHandler();
     void handleInput();
     bool mouseWithinBounds();
+    void reset();
 };
 
 
