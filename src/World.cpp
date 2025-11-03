@@ -56,15 +56,24 @@ void World::burn(int x, int y, int side){
 
     for (int i = topLeftX; i < x+side/2; i++) {
         for (int j = topLeftY; j < y+side/2; j++) {
-            if (withinRows(j) && withinCols(i) && m_points(i, j).getType()==Wood) {
+            if (withinRows(j) && withinCols(i) && m_points(i, j).isWood()) {
                 m_points(i, j).burn();
-            }
-            
-        }
-        
-    }
-    
-    
+            } 
+        }  
+    }  
+}
+
+void World::clearMaterial(int x, int y, int side) {
+    int topLeftX = (x - side/2);
+    int topLeftY = (y - side/2);
+
+    for (int i = topLeftX; i < x+side/2; i++) {
+        for (int j = topLeftY; j < y+side/2; j++) {
+            if (withinRows(j) && withinCols(i) && m_points(i, j).getType()!= Empty) {
+                m_points(i, j).reset();
+            } 
+        }  
+    } 
 }
 
 void World::burnSurrounding(int x, int y, int side) {

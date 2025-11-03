@@ -36,6 +36,7 @@ class World {
         void burnSurrounding(int x, int y, int side=1);
         void updateSmoke(int i, int j);
         void updatePoint(int i, int j);
+        void clearMaterial(int x, int y, int side);
 };
 
 #endif

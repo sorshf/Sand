@@ -7,6 +7,7 @@ Falling sand simulation built using **C++** and **SDL3**.
 - 🏖️ Drop sands with random color
 - 🪵 Add woods to support sands
 - 🔥 Burn woods to create flame and smoke
+- ✏️ Eraser to remove material
 - 🏞️ Built-in screenshot capture
 ![Screenshot of the app showing flamable wood, fire, and smoke.](/assets/screenshots/World_tree.png)
 
@@ -19,6 +20,7 @@ Change the material or function type by entering the following keys (no need to 
 - Sand: `S`
 - Wood: `W`
 - Burn: `F`
+- Eraser: `P`
 - Screenshot: `D` 
 
 

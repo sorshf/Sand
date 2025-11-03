@@ -19,6 +19,7 @@ public:
     bool m_addWoods = false;
     bool m_burn = false;
     bool m_saveImage = false;
+    bool m_eraser = false;
     SDL_Color m_sandBaseColor;
     float m_x_click = 0.0f;
     float m_y_click = 0.0f;

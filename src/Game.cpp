@@ -42,6 +42,8 @@ void Game::update() {
                         16, 250, 0, {150, 111, 51, 255}, Wood);
     } else if (m_inputHandler.m_addMaterial && m_inputHandler.m_burn) {
         m_world.burn(SDL_floorf(m_inputHandler.m_x_click), SDL_floorf(m_inputHandler.m_y_click), 20);
+    } else if (m_inputHandler.m_addMaterial && m_inputHandler.m_eraser) {
+        m_world.clearMaterial(SDL_floorf(m_inputHandler.m_x_click), SDL_floorf(m_inputHandler.m_y_click), 20);
     }
 }
 

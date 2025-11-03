@@ -58,21 +58,31 @@ void InputHandler::handleInput(){
                     m_addSands = false;
                     m_burn = false;
                     m_saveImage = false;
+                    m_eraser = false;
                 } else if (m_e.key.key == SDLK_S) {
                     m_addWoods = false;
                     m_addSands = true;
                     m_burn = false;
                     m_saveImage = false;
+                    m_eraser = false;
                 } else if (m_e.key.key == SDLK_F) {
                     m_addWoods = false;
                     m_addSands = false;
                     m_burn = true;
                     m_saveImage = false;
+                    m_eraser = false;
                 } else if (m_e.key.key == SDLK_D) {
                     m_addWoods = false;
                     m_addSands = false;
                     m_burn = false;
                     m_saveImage = true;
+                    m_eraser = false;
+                } else if (m_e.key.key == SDLK_P) {
+                    m_addWoods = false;
+                    m_addSands = false;
+                    m_burn = false;
+                    m_saveImage = false;
+                    m_eraser = true;
                 }
                 break;
             default:
@@ -87,4 +97,5 @@ void InputHandler::reset() {
     m_addSands = false;
     m_burn = false;
     m_saveImage = false;
+    m_eraser = false;
 }
