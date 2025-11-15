@@ -35,6 +35,10 @@ bool Material::isWood() const {
     return m_type == Wood;
 }
 
+bool Material::isSmoke() const {
+    return m_type == Smoke;
+}
+
 void Material::burn() {
     m_burnDegree = 1;
 }

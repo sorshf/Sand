@@ -264,8 +264,9 @@ bool World::moveParticleDiagonally(int x, int y, int dx, int dy, HorizontalDirec
     int newX = withinCols(x + horDir*dx) ? x + horDir*dx : x;
     int newY = withinRows(y + verDir*dy) ? y + verDir*dy : y;
 
-    //If the new position is empty and different from the original, we swap the points
-    if (ignoreCollision) {
+    //If ignore collision or the new space is smoke, we can swap the particles
+    //Otherwise, only if the new space is empty we can swap the particles
+    if (ignoreCollision || m_points(newX, newY).isSmoke()) {
         swapPixels(x, y, newX, newY);
         return true;
     } else if (m_points(newX , newY).isEmpty()) {

@@ -27,6 +27,7 @@ class Material {
         MaterialType getType() const;
         bool isEmpty() const;
         bool isWood() const;
+        bool isSmoke() const;
         void burn();
         void smoke();
         void reset();
