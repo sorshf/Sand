@@ -8,31 +8,46 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Set output directories
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-# Create an option to switch between a system sdl library and a vendored SDL library
-option(MYGAME_VENDORED "Use vendored libraries" ON)
+# Switch between a system sdl library and FetchContent
+option(FETCH_SDL3 "Download SDL3" ON)
 
-if(MYGAME_VENDORED)
-    # This assumes you have added SDL as a submodule in vendored/SDL
-    add_subdirectory(vendored/SDL EXCLUDE_FROM_ALL)
+if(FETCH_SDL3)
+    # Use FetchContent to download SDL3
+    include(FetchContent)
+    
+    FetchContent_Declare(
+        SDL3
+        GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+        GIT_TAG release-3.2.26
+        GIT_SHALLOW TRUE
+        GIT_PROGRESS TRUE
+    )
+    
+    # Optional: Set SDL3 options before making it available
+    set(SDL_SHARED ON CACHE BOOL "" FORCE)
+    set(SDL_STATIC OFF CACHE BOOL "" FORCE)
+    
+    FetchContent_MakeAvailable(SDL3)
 else()
-    # 1. Look for a SDL3 package,
-    # 2. look for the SDL3-shared component, and
-    # 3. fail if the shared component cannot be found.
     find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3-shared)
 endif()
 
-# Optional: Include directories
-include_directories(${PROJECT_SOURCE_DIR}/include)
-
-# Source files
-file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
-    ${PROJECT_SOURCE_DIR}/src/*.cpp
+# Sources
+set(SOURCES
+    ${PROJECT_SOURCE_DIR}/src/main.cpp
+    ${PROJECT_SOURCE_DIR}/src/InputHandler.cpp
+    ${PROJECT_SOURCE_DIR}/src/Game.cpp
+    ${PROJECT_SOURCE_DIR}/src/Material.cpp
+    ${PROJECT_SOURCE_DIR}/src/World.cpp
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 # Link SDL3
 target_link_libraries(${PROJECT_NAME} PRIVATE SDL3::SDL3)
+
+# Include directories
+target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/include)
 
 # For IDEs: make source groups by folders
 source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${SOURCES})
